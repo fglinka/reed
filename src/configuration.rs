@@ -7,7 +7,7 @@ use std::default::Default;
 use std::error::Error;
 use model::LibraryEntryMeta;
 use std::path::{Path, PathBuf};
-use directories::ProjectDirs;
+use directories::{UserDirs, ProjectDirs};
 
 quick_error! {
     #[derive(Debug)]
@@ -85,7 +85,11 @@ pub struct Configuration {
 
 impl Default for ConfigurationVariables {
     fn default() -> Self {
-        ConfigurationVariables::new(PathBuf::from("~/Documents/Papers/"),
+        let dirs = UserDirs::new().expect("Failed to determine default user directories");
+        let default_doc_dir = dirs.document_dir()
+            .expect("Failed to determine default document directory").join("Papers");
+
+        ConfigurationVariables::new(default_doc_dir,
                                     String::from("%A-%y-%T"),
                                     2,
                                     String::from("_"),
