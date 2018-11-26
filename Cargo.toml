@@ -6,5 +6,16 @@ authors = ["Felix Glinka <fglinka@posteo.eu>"]
 license = "MIT"
 
 [dependencies]
+# for persisting data
+serde = "1"
+# for making defining serde traits easier
+serde_derive = "1"
+# for storing data as a JSON file
+serde_json = "1"
 sha2 = "0.8"
-chrono = "0.4"
+# already included by nom-bibtex
+quick-error = "1"
+
+[dependencies.generic-array]
+version = "0.12"
+features = ["serde"]
