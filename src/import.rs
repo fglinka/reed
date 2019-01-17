@@ -109,6 +109,22 @@ pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
         }
     }?;
 
+    // Decompose the file name
+    let file_stem = file_path.as_ref()
+        .file_stem()
+        .ok_or(ImportError::CorruptFilePath(String::from("No file name specified.")))?
+        .to_str()
+        .ok_or(ImportError::CorruptFilePath(format!("File name {} not valid UTF-8"
+                                                   , file_path.as_ref()
+                                                   .to_string_lossy())))?;
+    let file_ext = file_path.as_ref()
+        .extension()
+        .ok_or(ImportError::CorruptFilePath(String::from("No file name specified.")))?
+        .to_str()
+        .ok_or(ImportError::CorruptFilePath(format!("File extension of {} not valid UTF-8"
+                                                   , file_path.as_ref()
+                                                   .to_string_lossy())))?;
+
     // New lifetime to make sure the reader is closed before moving any file
     let digest = {
         // This can be done more elegantly (by not loading the entire file) but should suffice
@@ -122,15 +138,7 @@ pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
         hasher.result()
     };
 
-    // The file name should exist if we were already able to open the file
-    let file_name = file_path.as_ref()
-        .file_name()
-        .ok_or(ImportError::CorruptFilePath(String::from("File name does not exist.")))?
-        .to_str()
-        .ok_or(ImportError::CorruptFilePath(format!("File name {} not valid UTF-8"
-                                                   , file_path.as_ref()
-                                                   .to_string_lossy())))?;
-    let name = assemble_name(file_name, &meta, conf);
+    let name = format!("{}.{}", assemble_name(file_stem, &meta, conf), file_ext);
     let path = conf.variables().document_location().join(name);
     let path_str = match path.to_str() {
         Some(s) => String::from(s),
