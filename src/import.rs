@@ -150,7 +150,7 @@ mod bib {
     use super::*;
     use nom_bibtex::{Bibtex, Bibliography};
     use nom_bibtex::error::BibtexError;
-    use nom::{IError, space, non_empty};
+    use nom::{IError};
 
     impl From<BibtexError> for ImportError {
         fn from(err: BibtexError) -> ImportError {
@@ -168,10 +168,14 @@ mod bib {
         }
     }
 
-    named!(parse_author<&str, &str>, delimited!(space, tag!("and"), space));
+    //named!(parse_author<&str, &str>, delimited!(space, tag!("and"), space));
 
-    named!(parse_author_list<&str, Vec<&str>>,
-           separated_nonempty_list!(parse_author, non_empty));
+    //named!(parse_author_list<&str, Vec<String>>,
+           //separated_nonempty_list!(tag!(" and "), map!(non_empty, String::from)));
+
+    fn parse_author_list(authors: &str) -> Vec<String> {
+        authors.split(" and ").map(String::from).collect()
+    }
 
     fn parse_entry_type(name: &str) -> Result<LibraryEntryType, ImportError> {
         match name.to_lowercase().as_str() {
@@ -205,11 +209,7 @@ mod bib {
 
         let entry_type = parse_entry_type(b.entry_type())?;
         let (_, title) = find_tag_required("title")?;
-        let authors = parse_author_list(&find_tag_required("author")?.1)
-            .to_full_result()?
-            .into_iter()
-            .map(| s | String::from(s))
-            .collect::<Vec<String>>();
+        let authors = parse_author_list(&find_tag_required("author")?.1);
         let year = match find_tag_required("year")?.1.parse::<u32>() {
             Ok(y) => y,
             Err(e) => return Err(ImportError::Parse(format!("Failed to parse year: {}", e)))
