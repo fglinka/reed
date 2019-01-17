@@ -12,15 +12,19 @@ extern crate nom_bibtex;
 #[macro_use]
 extern crate lazy_static;
 extern crate directories;
+#[macro_use]
+extern crate clap;
 
 mod model;
 mod import;
 mod configuration;
+mod cli;
 
 use configuration::Configuration;
+use cli::process_args;
 
 fn main() {
     // Load configuration
-    let conf = Configuration::load();
-    println!("Hello, world!");
+    let conf = Configuration::load().unwrap();
+    process_args(&conf);
 }

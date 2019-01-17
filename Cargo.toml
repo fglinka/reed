@@ -26,6 +26,8 @@ quick-error = "1"
 lazy_static = "1"
 # used for determining config/data file paths
 directories = "1"
+# used for command parsing
+clap = "2"
 
 [dependencies.generic-array]
 version = "0.12"
