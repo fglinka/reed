@@ -5,6 +5,7 @@ use std::string;
 use std::io::BufReader;
 use std::io::copy;
 use std::fs::File;
+use std::fs;
 use std::path::Path;
 use std::error::Error;
 use std::convert::From;
@@ -59,6 +60,7 @@ type ImportResultSet = Vec<LibraryEntryMeta>;
 type ImportResult = Result<ImportResultSet, ImportError>;
 
 pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
+                              force_move: bool, force_copy: bool,
                               conf: &Configuration) -> Result<LibraryEntry, ImportError> {
     // Read file data as UTF-8 String
     let mut resource_reader = BufReader::new(File::open(&resource_path)?);
@@ -135,10 +137,10 @@ pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
         None => return Err(ImportError::CorruptFilePath(
             format!("Path {} contains non UTF-8 characters", path.to_string_lossy())))
     };
-    if conf.variables().move_files() {
-        std::fs::copy(&file_path, &path)?;
+    if force_move || (!force_copy && conf.variables().move_files()) {
+        fs::rename(&file_path, &path)?;
     } else {
-        std::fs::rename(&file_path, &path)?;
+        fs::copy(&file_path, &path)?;
     }
 
     Ok(LibraryEntry::new(meta, path_str, digest))
