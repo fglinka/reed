@@ -3,6 +3,30 @@
 use model::LibraryEntry;
 use std::str::FromStr;
 use std::fmt;
+use std::error::Error;
+use std::fs::File;
+use std::ops::Drop;
+
+quick_error! {
+    /// Used to indicate, that the library could not be correctly loaded or stored
+    #[derive(Debug)]
+    pub enum LibraryPersistenceError {
+        /// Returned when an I/O error occurs while loading or storing library
+        Io(err: std::io::Error) {
+            description(err.description())
+            display(self_) -> ("Saving or loading library failed; I/O error: {}",
+                               self_.description())
+            from()
+        }
+        /// Returned when Serialization or Deserialization of the library failed
+        Serialization(err: serde_json::Error) {
+            description(err.description())
+            display(self_) -> ("Saving or loading library failed; (De)serialization error: {}",
+                               self_.description())
+            from()
+        }
+    }
+}
 
 /// An abstraction of a cargo crate version given as `major.minor.patch`.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -65,12 +89,34 @@ impl Default for LibraryFile {
     }
 }
 
+impl Drop for Library {
+    fn drop(&mut self) {
+        // store the new state of the library if it was changed
+        if self.changed { self.store().unwrap() }
+    }
+}
+
 impl Library {
-    fn new(path: &str) -> Library {
+    pub fn new(path: &str) -> Library {
         Library {
             content: LibraryFile::default(),
             path: String::from(path),
             changed: true
         }
+    }
+
+    pub fn load(path: &str) -> Result<Library, LibraryPersistenceError> {
+        // Open the library file and parse it
+        let content = serde_json::from_reader(File::open(path)?)?;
+
+        Ok(Library {
+            content: content,
+            path: String::from(path),
+            changed: false
+        })
+    }
+
+    pub fn store(&self) -> Result<(), LibraryPersistenceError> {
+        Ok(serde_json::to_writer(File::create(&self.path)?, &self.content)?)
     }
 }
