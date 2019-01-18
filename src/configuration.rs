@@ -124,11 +124,11 @@ impl ConfigurationVariables {
                author_separator: String,
                move_files: bool) -> ConfigurationVariables {
         ConfigurationVariables {
-            document_location: document_location,
-            max_author_names: max_author_names,
-            author_separator: author_separator,
-            name_pattern: name_pattern,
-            move_files: move_files
+            document_location,
+            max_author_names,
+            author_separator,
+            name_pattern,
+            move_files
         }
     }
 }
@@ -155,7 +155,7 @@ impl Default for Configuration {
 impl Configuration {
     pub fn new(variables: ConfigurationVariables) -> Configuration {
         Configuration {
-            variables: variables,
+            variables,
             modified: false
         }
     }
@@ -176,7 +176,9 @@ impl Configuration {
             .find(| &p | p.exists())
             .unwrap_or(&CONFIG_FILE_PATHS[0]);
         create_dir_all((path as &AsRef<Path>).as_ref().parent().unwrap())?;
-        Ok(serde_yaml::to_writer(File::create(path)?, &self.variables())?)
+        serde_yaml::to_writer(File::create(path)?, &self.variables())?;
+
+        Ok(())
     }
 
     pub fn variables(&self) -> &ConfigurationVariables {
@@ -199,7 +201,7 @@ pub mod util {
     /// Assembles a filename from metadata using the pattern specified in `name_pattern`
     pub fn assemble_name(original_name: &str, meta: &LibraryEntryMeta,
                          conf: &Configuration) -> String {
-        let (authors, authors_last_name) = if meta.authors().len() > 0
+        let (authors, authors_last_name) = if !meta.authors().is_empty()
             && conf.variables().max_author_names() != 0 {
                 meta.authors().iter()
                     .take(conf.variables().max_author_names() as usize)

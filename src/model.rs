@@ -141,13 +141,13 @@ impl LibraryEntryMeta {
                month: Option<Month>,
                original_db: Option<String>) -> LibraryEntryMeta {
         LibraryEntryMeta {
-            key: key,
-            entry_type: entry_type,
-            title: title,
-            authors: authors,
-            year: year,
-            month: month,
-            original_db: original_db
+            key,
+            entry_type,
+            title,
+            authors,
+            year,
+            month,
+            original_db
         }
     }
     pub fn key(&self) -> &str {
@@ -184,9 +184,9 @@ impl LibraryEntry {
                file_path: String,
                digest: FileDigest) -> LibraryEntry {
         LibraryEntry {
-            meta: meta,
-            file_path: file_path,
-            digest: digest
+            meta,
+            file_path,
+            digest
         }
     }
 

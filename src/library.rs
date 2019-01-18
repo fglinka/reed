@@ -57,7 +57,7 @@ impl FromStr for VersionSpec {
         let digits: Vec<Option<u32>> = s.split('.')
             .map(| v | u32::from_str(v).ok())
             .collect();
-        if (&digits).into_iter().any(| v | v.is_none()) {
+        if digits.iter().any(| v | v.is_none()) {
             return Err("Version digit ill-formatted.");
         }
         if digits.len() != 3 {
@@ -110,13 +110,15 @@ impl Library {
         let content = serde_json::from_reader(File::open(path)?)?;
 
         Ok(Library {
-            content: content,
+            content,
             path: String::from(path),
             changed: false
         })
     }
 
     pub fn store(&self) -> Result<(), LibraryPersistenceError> {
-        Ok(serde_json::to_writer(File::create(&self.path)?, &self.content)?)
+        serde_json::to_writer(File::create(&self.path)?, &self.content)?;
+
+        Ok(())
     }
 }

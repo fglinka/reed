@@ -81,7 +81,7 @@ pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
     }?;
 
     let known_keys = | | {
-        (&results).into_iter()
+        results.iter()
         .map(| bib | bib.key())
         .collect::<Vec<&str>>()
     };
@@ -91,15 +91,14 @@ pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
             results.iter()
                 .find(| bib | k == bib.key())
                 .cloned()
-                .ok_or(
-                    ImportError::NoBibliographyFound(
+                .ok_or_else(|| ImportError::NoBibliographyFound(
                         format!("Key {} unkown; known keys are: {:?}",
                                 String::from(k), 
                                 known_keys())))
         },
         None => {
             if results.len() == 1 {
-                Ok(results.get(0).unwrap().clone())
+                Ok((&results[0]).clone())
             }
             else {
                 Err(ImportError::NoBibliographyFound(
@@ -112,18 +111,19 @@ pub fn import<P: AsRef<Path>>(file_path: P, resource_path: P, key: Option<&str>,
     // Decompose the file name
     let file_stem = file_path.as_ref()
         .file_stem()
-        .ok_or(ImportError::CorruptFilePath(String::from("No file name specified.")))?
+        .ok_or_else(|| ImportError::CorruptFilePath(String::from("No file name specified.")))?
         .to_str()
-        .ok_or(ImportError::CorruptFilePath(format!("File name {} not valid UTF-8"
-                                                   , file_path.as_ref()
-                                                   .to_string_lossy())))?;
+        .ok_or_else(|| ImportError::CorruptFilePath(format!("File name {} not valid UTF-8"
+                                                            , file_path.as_ref()
+                                                            .to_string_lossy())))?;
     let file_ext = file_path.as_ref()
         .extension()
-        .ok_or(ImportError::CorruptFilePath(String::from("No file name specified.")))?
+        .ok_or_else(|| ImportError::CorruptFilePath(String::from("No file name specified.")))?
         .to_str()
-        .ok_or(ImportError::CorruptFilePath(format!("File extension of {} not valid UTF-8"
-                                                   , file_path.as_ref()
-                                                   .to_string_lossy())))?;
+        .ok_or_else(||
+                    ImportError::CorruptFilePath(format!("File extension of {} not valid UTF-8"
+                                                         , file_path.as_ref()
+                                                         .to_string_lossy())))?;
 
     // New lifetime to make sure the reader is closed before moving any file
     let digest = {
@@ -208,11 +208,11 @@ mod bib {
 
     fn import_bib(b: &Bibliography, file: &str) -> Result<LibraryEntryMeta, ImportError> {
         let find_tag = | tag: &str | {
-            b.tags().into_iter()
+            b.tags().iter()
                 .find(| &(ref name, _) | name.to_lowercase() == tag)
         };
         let find_tag_required = | tag: &str | {
-            find_tag(tag).ok_or(ImportError::Parse(format!("Missing tag \"{}\"", tag)))
+            find_tag(tag).ok_or_else(|| ImportError::Parse(format!("Missing tag \"{}\"", tag)))
         };
 
         let entry_type = parse_entry_type(b.entry_type())?;
@@ -233,14 +233,14 @@ mod bib {
                                  authors,
                                  year,
                                  month,
-                                 Some(String::from(file.clone()))))
+                                 Some(String::from(file))))
     }
 
     pub fn import(file: String) -> ImportResult {
         let bibs = Bibtex::parse(&file)?;
 
         Ok(bibs.bibliographies()
-            .into_iter()
+            .iter()
             // map_or_else would make this more elegant but is not yet in stable
             // see #53268
             .filter_map(| bib | match import_bib(bib, &file) {
