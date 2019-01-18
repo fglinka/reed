@@ -1,11 +1,11 @@
 //! Handles loading and storing of the metadata library as well as queries.
 
 use model::LibraryEntry;
-use std::str::FromStr;
-use std::fmt;
 use std::error::Error;
+use std::fmt;
 use std::fs::File;
 use std::ops::Drop;
+use std::str::FromStr;
 
 quick_error! {
     /// Used to indicate, that the library could not be correctly loaded or stored
@@ -33,7 +33,7 @@ quick_error! {
 struct VersionSpec {
     major: u32,
     minor: u32,
-    patch: u32
+    patch: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,7 +46,7 @@ struct LibraryFile {
 pub struct Library {
     content: LibraryFile,
     path: String,
-    changed: bool
+    changed: bool,
 }
 
 impl FromStr for VersionSpec {
@@ -54,10 +54,8 @@ impl FromStr for VersionSpec {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // Determine and validate the single version "digits" seperated by dots
-        let digits: Vec<Option<u32>> = s.split('.')
-            .map(| v | u32::from_str(v).ok())
-            .collect();
-        if digits.iter().any(| v | v.is_none()) {
+        let digits: Vec<Option<u32>> = s.split('.').map(|v| u32::from_str(v).ok()).collect();
+        if digits.iter().any(|v| v.is_none()) {
             return Err("Version digit ill-formatted.");
         }
         if digits.len() != 3 {
@@ -68,7 +66,7 @@ impl FromStr for VersionSpec {
         Ok(VersionSpec {
             major: digits[0].unwrap(),
             minor: digits[1].unwrap(),
-            patch: digits[2].unwrap()
+            patch: digits[2].unwrap(),
         })
     }
 }
@@ -84,7 +82,7 @@ impl Default for LibraryFile {
         LibraryFile {
             // The crate version should be formatted correctly
             creation_version: VersionSpec::from_str(crate_version!()).unwrap(),
-            entries: Vec::new()
+            entries: Vec::new(),
         }
     }
 }
@@ -92,7 +90,9 @@ impl Default for LibraryFile {
 impl Drop for Library {
     fn drop(&mut self) {
         // store the new state of the library if it was changed
-        if self.changed { self.store().unwrap() }
+        if self.changed {
+            self.store().unwrap()
+        }
     }
 }
 
@@ -101,7 +101,7 @@ impl Library {
         Library {
             content: LibraryFile::default(),
             path: String::from(path),
-            changed: true
+            changed: true,
         }
     }
 
@@ -112,7 +112,7 @@ impl Library {
         Ok(Library {
             content,
             path: String::from(path),
-            changed: false
+            changed: false,
         })
     }
 

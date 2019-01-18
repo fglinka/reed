@@ -1,13 +1,13 @@
 //! This module defines the content of the global configuration file. Additionally it takes
 //! care of loading the static configuration instance
 
-use std::fs::{File, create_dir_all};
-use std::io::BufReader;
+use directories::{ProjectDirs, UserDirs};
+use model::LibraryEntryMeta;
 use std::default::Default;
 use std::error::Error;
-use model::LibraryEntryMeta;
+use std::fs::{create_dir_all, File};
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use directories::{UserDirs, ProjectDirs};
 
 quick_error! {
     #[derive(Debug)]
@@ -35,20 +35,21 @@ quick_error! {
 fn get_config_paths() -> Vec<PathBuf> {
     let dirs = ProjectDirs::from("org", "fowlder", "fowlder")
         .expect("Failed to determine config file directories");
-    vec!(dirs.config_dir().join("config.yaml"), PathBuf::from("/etc/fowlder.yaml"))
+    vec![
+        dirs.config_dir().join("config.yaml"),
+        PathBuf::from("/etc/fowlder.yaml"),
+    ]
 }
 
 #[cfg(not(unix))]
 fn get_config_paths() -> Vec<PathBuf> {
     let dirs = ProjectDirs::from("fowlder", "fowlder", "org")
         .expect("Failed to determine config file directories");
-    vec!(dirs.config_dir().join("config.yaml"))
+    vec![dirs.config_dir().join("config.yaml")]
 }
 
 lazy_static! {
-    static ref CONFIG_FILE_PATHS: Vec<PathBuf> = {
-        get_config_paths()
-    };
+    static ref CONFIG_FILE_PATHS: Vec<PathBuf> = { get_config_paths() };
 }
 
 /// Stores the variables of the global configuration.
@@ -80,20 +81,24 @@ pub struct ConfigurationVariables {
 #[derive(Debug)]
 pub struct Configuration {
     variables: ConfigurationVariables,
-    modified: bool
+    modified: bool,
 }
 
 impl Default for ConfigurationVariables {
     fn default() -> Self {
         let dirs = UserDirs::new().expect("Failed to determine default user directories");
-        let default_doc_dir = dirs.document_dir()
-            .expect("Failed to determine default document directory").join("Papers");
+        let default_doc_dir = dirs
+            .document_dir()
+            .expect("Failed to determine default document directory")
+            .join("Papers");
 
-        ConfigurationVariables::new(default_doc_dir,
-                                    String::from("%A-%y-%T"),
-                                    2,
-                                    String::from("_"),
-                                    true)
+        ConfigurationVariables::new(
+            default_doc_dir,
+            String::from("%A-%y-%T"),
+            2,
+            String::from("_"),
+            true,
+        )
     }
 }
 
@@ -118,17 +123,19 @@ impl ConfigurationVariables {
         self.move_files
     }
 
-    pub fn new(document_location: PathBuf,
-               name_pattern: String,
-               max_author_names: u32,
-               author_separator: String,
-               move_files: bool) -> ConfigurationVariables {
+    pub fn new(
+        document_location: PathBuf,
+        name_pattern: String,
+        max_author_names: u32,
+        author_separator: String,
+        move_files: bool,
+    ) -> ConfigurationVariables {
         ConfigurationVariables {
             document_location,
             max_author_names,
             author_separator,
             name_pattern,
-            move_files
+            move_files,
         }
     }
 }
@@ -147,7 +154,7 @@ impl Default for Configuration {
     fn default() -> Self {
         Configuration {
             variables: ConfigurationVariables::default(),
-            modified: true
+            modified: true,
         }
     }
 }
@@ -156,7 +163,7 @@ impl Configuration {
     pub fn new(variables: ConfigurationVariables) -> Configuration {
         Configuration {
             variables,
-            modified: false
+            modified: false,
         }
     }
 
@@ -172,8 +179,9 @@ impl Configuration {
     }
 
     pub fn save(&mut self) -> Result<(), ConfigurationPersistenceError> {
-        let path = CONFIG_FILE_PATHS.iter()
-            .find(| &p | p.exists())
+        let path = CONFIG_FILE_PATHS
+            .iter()
+            .find(|&p| p.exists())
             .unwrap_or(&CONFIG_FILE_PATHS[0]);
         create_dir_all((path as &AsRef<Path>).as_ref().parent().unwrap())?;
         serde_yaml::to_writer(File::create(path)?, &self.variables())?;
@@ -199,15 +207,19 @@ pub mod util {
     }
 
     /// Assembles a filename from metadata using the pattern specified in `name_pattern`
-    pub fn assemble_name(original_name: &str, meta: &LibraryEntryMeta,
-                         conf: &Configuration) -> String {
-        let (authors, authors_last_name) = if !meta.authors().is_empty()
-            && conf.variables().max_author_names() != 0 {
-                meta.authors().iter()
+    pub fn assemble_name(
+        original_name: &str,
+        meta: &LibraryEntryMeta,
+        conf: &Configuration,
+    ) -> String {
+        let (authors, authors_last_name) =
+            if !meta.authors().is_empty() && conf.variables().max_author_names() != 0 {
+                meta.authors()
+                    .iter()
                     .take(conf.variables().max_author_names() as usize)
-                    .map(| s | (s.clone(), String::from(get_last_name(s).unwrap_or(s))))
+                    .map(|s| (s.clone(), String::from(get_last_name(s).unwrap_or(s))))
                     .enumerate()
-                    .map(| (i, (s1,s2)) | {
+                    .map(|(i, (s1, s2))| {
                         if i == 0 {
                             (s1, s2)
                         } else {
@@ -215,17 +227,18 @@ pub mod util {
                             (format!("{}{}", sep, s1), format!("{}{}", sep, s2))
                         }
                     })
-                .unzip()
-        } else {
-            (String::from(""), String::from(""))
-        };
+                    .unzip()
+            } else {
+                (String::from(""), String::from(""))
+            };
 
         let month = match meta.month() {
             Some(m) => m.to_string(),
-            None => String::from("")
+            None => String::from(""),
         };
 
-        conf.variables().name_pattern()
+        conf.variables()
+            .name_pattern()
             .replace("%F", original_name)
             .replace("%f", &original_name.to_lowercase())
             .replace("%K", meta.key())

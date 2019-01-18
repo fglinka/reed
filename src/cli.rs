@@ -16,7 +16,7 @@ fn parse() -> App<'static, 'static> {
                 if there are multiple")
             (@arg move: -m --move "Move the imported file regardless of the confifuration")
             (@arg copy: -c --copy conflicts_with[move] "Copy the imported file regardless of \
-                the configuration") 
+                the configuration")
         )
     )
 }
@@ -26,7 +26,7 @@ pub fn process_args(conf: &Configuration) {
 
     match matches.subcommand() {
         ("import", Some(sub)) => sub_import(sub, conf),
-        _ => ()
+        _ => (),
     }
 }
 

@@ -15,14 +15,14 @@ extern crate directories;
 #[macro_use]
 extern crate clap;
 
-mod model;
-mod import;
-mod configuration;
 mod cli;
+mod configuration;
+mod import;
 mod library;
+mod model;
 
-use configuration::Configuration;
 use cli::process_args;
+use configuration::Configuration;
 
 fn main() {
     // Load configuration

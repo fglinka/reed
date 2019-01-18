@@ -1,11 +1,11 @@
 //! Defines structures used to handle and store library entries.
 
-use std::vec::Vec;
 use sha2::digest::{generic_array::GenericArray, FixedOutput};
 use sha2::Sha256;
+use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
-use std::error::Error;
+use std::vec::Vec;
 
 quick_error! {
     #[derive(Debug)]
@@ -41,7 +41,7 @@ pub enum LibraryEntryType {
     PHDThesis,
     Proceedings,
     Techreport,
-    Unpublished
+    Unpublished,
 }
 
 /// An enum expressing a month and providing various conversion functions
@@ -58,7 +58,7 @@ pub enum Month {
     Sep,
     Oct,
     Nov,
-    Dec
+    Dec,
 }
 
 /// The type used for representing file digests, though not the actual type stored in the
@@ -75,7 +75,7 @@ pub struct LibraryEntryMeta {
     authors: Vec<String>,
     year: u32,
     month: Option<Month>,
-    original_db: Option<String>
+    original_db: Option<String>,
 }
 
 /// A structure containing the metadata and file information of an entry stored in the
@@ -84,7 +84,7 @@ pub struct LibraryEntryMeta {
 pub struct LibraryEntry {
     meta: LibraryEntryMeta,
     file_path: String,
-    digest: FileDigest
+    digest: FileDigest,
 }
 
 impl fmt::Display for Month {
@@ -101,7 +101,7 @@ impl fmt::Display for Month {
             Month::Sep => "September",
             Month::Oct => "October",
             Month::Nov => "November",
-            Month::Dec => "December"
+            Month::Dec => "December",
         })
     }
 }
@@ -111,7 +111,7 @@ impl FromStr for Month {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Ok(num) = s.parse::<u32>() {
-            return Month::from_number(num)
+            return Month::from_number(num);
         }
         let init = s.chars().take(3).collect::<String>().to_lowercase();
         match init.as_str() {
@@ -127,19 +127,21 @@ impl FromStr for Month {
             "oct" => Ok(Month::Oct),
             "nov" => Ok(Month::Nov),
             "dec" => Ok(Month::Dec),
-            _ => Err(ParseMonthError::Unkown(format!("month {} unkown", init)))
+            _ => Err(ParseMonthError::Unkown(format!("month {} unkown", init))),
         }
     }
 }
 
 impl LibraryEntryMeta {
-    pub fn new(key: String,
-               entry_type: LibraryEntryType,
-               title: String,
-               authors: Vec<String>,
-               year: u32,
-               month: Option<Month>,
-               original_db: Option<String>) -> LibraryEntryMeta {
+    pub fn new(
+        key: String,
+        entry_type: LibraryEntryType,
+        title: String,
+        authors: Vec<String>,
+        year: u32,
+        month: Option<Month>,
+        original_db: Option<String>,
+    ) -> LibraryEntryMeta {
         LibraryEntryMeta {
             key,
             entry_type,
@@ -147,7 +149,7 @@ impl LibraryEntryMeta {
             authors,
             year,
             month,
-            original_db
+            original_db,
         }
     }
     pub fn key(&self) -> &str {
@@ -180,13 +182,11 @@ impl LibraryEntryMeta {
 }
 
 impl LibraryEntry {
-    pub fn new(meta: LibraryEntryMeta,
-               file_path: String,
-               digest: FileDigest) -> LibraryEntry {
+    pub fn new(meta: LibraryEntryMeta, file_path: String, digest: FileDigest) -> LibraryEntry {
         LibraryEntry {
             meta,
             file_path,
-            digest
+            digest,
         }
     }
 
@@ -206,19 +206,22 @@ impl LibraryEntry {
 impl Month {
     pub fn from_number(num: u32) -> Result<Month, ParseMonthError> {
         match num {
-            1 =>  Ok(Month::Jan),
-            2 =>  Ok(Month::Feb),
-            3 =>  Ok(Month::Mar),
-            4 =>  Ok(Month::Apr),
-            5 =>  Ok(Month::May),
-            6 =>  Ok(Month::Jun),
-            7 =>  Ok(Month::Jul),
-            8 =>  Ok(Month::Aug),
-            9 =>  Ok(Month::Sep),
+            1 => Ok(Month::Jan),
+            2 => Ok(Month::Feb),
+            3 => Ok(Month::Mar),
+            4 => Ok(Month::Apr),
+            5 => Ok(Month::May),
+            6 => Ok(Month::Jun),
+            7 => Ok(Month::Jul),
+            8 => Ok(Month::Aug),
+            9 => Ok(Month::Sep),
             10 => Ok(Month::Oct),
             11 => Ok(Month::Nov),
             12 => Ok(Month::Dec),
-            _ => Err(ParseMonthError::OutOfBounds(format!("month {} out of bounds", num)))
+            _ => Err(ParseMonthError::OutOfBounds(format!(
+                "month {} out of bounds",
+                num
+            ))),
         }
     }
 }
