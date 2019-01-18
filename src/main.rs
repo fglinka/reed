@@ -19,6 +19,7 @@ mod model;
 mod import;
 mod configuration;
 mod cli;
+mod library;
 
 use configuration::Configuration;
 use cli::process_args;
