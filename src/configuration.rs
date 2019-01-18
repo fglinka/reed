@@ -188,21 +188,35 @@ impl Configuration {
 pub mod util {
     use super::*;
 
+    fn get_last_name(author: &str) -> Option<&str> {
+        if author.contains(',') {
+            author.split(',').nth(0)
+        } else {
+            author.split(' ').last()
+        }
+    }
+
     /// Assembles a filename from metadata using the pattern specified in `name_pattern`
     pub fn assemble_name(original_name: &str, meta: &LibraryEntryMeta,
                          conf: &Configuration) -> String {
-        let authors = if meta.authors().len() > 0
+        let (authors, authors_last_name) = if meta.authors().len() > 0
             && conf.variables().max_author_names() != 0 {
-            format!("{}{}"
-                    , meta.authors()[0]
-                    , &meta.authors().iter()
-                        .skip(1)
-                        .take(conf.variables().max_author_names() as usize - 1)
-                        .map(| s | format!("{}{}"
-                                           , conf.variables().author_separator()
-                                           , s))
-                        .collect::<String>())
-        } else { String::from("") };
+                meta.authors().iter()
+                    .take(conf.variables().max_author_names() as usize)
+                    .map(| s | (s.clone(), String::from(get_last_name(s).unwrap_or(s))))
+                    .enumerate()
+                    .map(| (i, (s1,s2)) | {
+                        if i == 0 {
+                            (s1, s2)
+                        } else {
+                            let sep = conf.variables().author_separator();
+                            (format!("{}{}", sep, s1), format!("{}{}", sep, s2))
+                        }
+                    })
+                .unzip()
+        } else {
+            (String::from(""), String::from(""))
+        };
 
         let month = match meta.month() {
             Some(m) => m.to_string(),
@@ -216,6 +230,8 @@ pub mod util {
             .replace("%k", &meta.key().to_lowercase())
             .replace("%A", &authors)
             .replace("%a", &authors.to_lowercase())
+            .replace("%L", &authors_last_name)
+            .replace("%l", &authors_last_name.to_lowercase())
             .replace("%T", meta.title())
             .replace("%t", &meta.title().to_lowercase())
             .replace("%Y", &meta.year().to_string())
