@@ -29,5 +29,12 @@ use configuration::Configuration;
 fn main() {
     // Load configuration
     let conf = Configuration::load().unwrap();
-    process_args(&conf);
+    let mut lib = match library::load_from_cfg(&conf) {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Failed to load library: {}", e);
+            return;
+        }
+    };
+    process_args(&conf, &mut lib);
 }

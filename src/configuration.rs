@@ -58,6 +58,7 @@ lazy_static! {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigurationVariables {
     document_location: PathBuf,
+    library_location: PathBuf,
     // Expandos:
     // %F for original file name including capitalization
     // %f for original file name including capitalization
@@ -91,9 +92,11 @@ impl Default for ConfigurationVariables {
             .document_dir()
             .expect("Failed to determine default document directory")
             .join("Papers");
+        let default_library_path = (&default_doc_dir).join("library.json");
 
         ConfigurationVariables::new(
             default_doc_dir,
+            default_library_path,
             String::from("%A-%y-%T"),
             2,
             String::from("_"),
@@ -105,6 +108,10 @@ impl Default for ConfigurationVariables {
 impl ConfigurationVariables {
     pub fn document_location(&self) -> &Path {
         &self.document_location
+    }
+
+    pub fn library_location(&self) -> &Path {
+        &self.library_location
     }
 
     pub fn name_pattern(&self) -> &str {
@@ -125,6 +132,7 @@ impl ConfigurationVariables {
 
     pub fn new(
         document_location: PathBuf,
+        library_location: PathBuf,
         name_pattern: String,
         max_author_names: u32,
         author_separator: String,
@@ -132,6 +140,7 @@ impl ConfigurationVariables {
     ) -> ConfigurationVariables {
         ConfigurationVariables {
             document_location,
+            library_location,
             max_author_names,
             author_separator,
             name_pattern,

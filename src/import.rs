@@ -2,6 +2,7 @@
 
 use configuration::util::assemble_name;
 use configuration::Configuration;
+use library::Library;
 use model::{LibraryEntry, LibraryEntryMeta, LibraryEntryType, Month, ParseMonthError};
 use sha2::{Digest, Sha256};
 use std::convert::From;
@@ -65,6 +66,7 @@ pub fn import<P: AsRef<Path>>(
     key: Option<&str>,
     force_move: bool,
     force_copy: bool,
+    lib: &mut Library,
     conf: &Configuration,
 ) -> Result<LibraryEntry, ImportError> {
     // Read file data as UTF-8 String

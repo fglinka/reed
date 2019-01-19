@@ -1,6 +1,7 @@
 use clap::{App, ArgMatches};
 use configuration::Configuration;
 use import::import;
+use library::Library;
 
 fn parse() -> App<'static, 'static> {
     clap_app!(fowlder =>
@@ -21,21 +22,21 @@ fn parse() -> App<'static, 'static> {
     )
 }
 
-pub fn process_args(conf: &Configuration) {
+pub fn process_args(conf: &Configuration, lib: &mut Library) {
     let matches = parse().get_matches();
 
     match matches.subcommand() {
-        ("import", Some(sub)) => sub_import(sub, conf),
+        ("import", Some(sub)) => sub_import(sub, lib, conf),
         _ => (),
     }
 }
 
-fn sub_import(sub: &ArgMatches, conf: &Configuration) {
+fn sub_import(sub: &ArgMatches, lib: &mut Library, conf: &Configuration) {
     let file = sub.value_of("file").unwrap();
     let bibliography = sub.value_of("bibliography").unwrap();
     let entry = sub.value_of("entry");
     let force_move = sub.is_present("move");
     let force_copy = sub.is_present("copy");
 
-    import(file, bibliography, entry, force_move, force_copy, conf).unwrap();
+    import(file, bibliography, entry, force_move, force_copy, lib, conf).unwrap();
 }

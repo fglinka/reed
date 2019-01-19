@@ -1,10 +1,12 @@
 //! Handles loading and storing of the metadata library as well as queries.
 
+use configuration::Configuration;
 use model::LibraryEntry;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::ops::Drop;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 quick_error! {
@@ -14,14 +16,14 @@ quick_error! {
         /// Returned when an I/O error occurs while loading or storing library
         Io(err: std::io::Error) {
             description(err.description())
-            display(self_) -> ("Saving or loading library failed; I/O error: {}",
+            display(self_) -> ("I/O error: {}",
                                self_.description())
             from()
         }
         /// Returned when Serialization or Deserialization of the library failed
         Serialization(err: serde_json::Error) {
             description(err.description())
-            display(self_) -> ("Saving or loading library failed; (De)serialization error: {}",
+            display(self_) -> ("(De)serialization error: {}",
                                self_.description())
             from()
         }
@@ -45,7 +47,7 @@ struct LibraryFile {
 #[derive(Debug)]
 pub struct Library {
     content: LibraryFile,
-    path: String,
+    path: PathBuf,
     changed: bool,
 }
 
@@ -97,21 +99,21 @@ impl Drop for Library {
 }
 
 impl Library {
-    pub fn new(path: &str) -> Library {
+    pub fn new<P: AsRef<Path>>(path: P) -> Library {
         Library {
             content: LibraryFile::default(),
-            path: String::from(path),
+            path: path.as_ref().to_path_buf(),
             changed: true,
         }
     }
 
-    pub fn load(path: &str) -> Result<Library, LibraryPersistenceError> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Library, LibraryPersistenceError> {
         // Open the library file and parse it
-        let content = serde_json::from_reader(File::open(path)?)?;
+        let content = serde_json::from_reader(File::open(&path)?)?;
 
         Ok(Library {
             content,
-            path: String::from(path),
+            path: path.as_ref().to_path_buf(),
             changed: false,
         })
     }
@@ -120,5 +122,15 @@ impl Library {
         serde_json::to_writer(File::create(&self.path)?, &self.content)?;
 
         Ok(())
+    }
+}
+
+pub fn load_from_cfg(conf: &Configuration) -> Result<Library, LibraryPersistenceError> {
+    // Check if the library file exists and create it if it does not
+    let path = conf.variables().library_location();
+    if !path.exists() {
+        Ok(Library::new(path))
+    } else {
+        Library::load(path)
     }
 }
