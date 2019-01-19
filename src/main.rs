@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 extern crate sha2;
 #[macro_use]
 extern crate quick_error;
