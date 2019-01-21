@@ -233,8 +233,8 @@ fn as_hex<S: Serializer, T: AsRef<[u8]>>(arr: T, serializer: S) -> Result<S::Ok,
 }
 
 fn from_hex<'a, D: Deserializer<'a>>(deserializer: D) -> Result<FileDigest, D::Error> {
-    match hex::decode(<&'a str>::deserialize(deserializer)?) {
+    match hex::decode(String::deserialize(deserializer)?) {
         Ok(v) => Ok(FileDigest::clone_from_slice(&v)),
-        Err(e) => Err(de::Error::custom(e))
+        Err(e) => Err(de::Error::custom(e)),
     }
 }
