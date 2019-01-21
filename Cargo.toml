@@ -28,6 +28,8 @@ lazy_static = "1"
 directories = "1"
 # used for command parsing
 clap = "2"
+# used for formatting digests
+hex = "0.3"
 
 [dependencies.generic-array]
 version = "0.12"

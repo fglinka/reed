@@ -1,5 +1,6 @@
 //! Defines structures used to handle and store library entries.
 
+use serde::{de, Serializer, Deserializer, Deserialize};
 use sha2::digest::{generic_array::GenericArray, FixedOutput};
 use sha2::Sha256;
 use std::error::Error;
@@ -84,6 +85,7 @@ pub struct LibraryEntryMeta {
 pub struct LibraryEntry {
     meta: LibraryEntryMeta,
     file_path: String,
+    #[serde(serialize_with = "as_hex", deserialize_with = "from_hex")]
     digest: FileDigest,
 }
 
@@ -223,5 +225,16 @@ impl Month {
                 num
             ))),
         }
+    }
+}
+
+fn as_hex<S: Serializer, T: AsRef<[u8]>>(arr: T, serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(&hex::encode(arr))
+}
+
+fn from_hex<'a, D: Deserializer<'a>>(deserializer: D) -> Result<FileDigest, D::Error> {
+    match hex::decode(<&'a str>::deserialize(deserializer)?) {
+        Ok(v) => Ok(FileDigest::clone_from_slice(&v)),
+        Err(e) => Err(de::Error::custom(e))
     }
 }

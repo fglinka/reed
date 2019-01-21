@@ -16,6 +16,7 @@ extern crate lazy_static;
 extern crate directories;
 #[macro_use]
 extern crate clap;
+extern crate hex;
 
 mod cli;
 mod configuration;
