@@ -38,13 +38,15 @@ fn sub_import(sub: &ArgMatches, lib: &mut Library, conf: &Configuration) {
     let id = sub.value_of("entry");
     let force_move = sub.is_present("move");
     let force_copy = sub.is_present("copy");
-    let tags: Vec<String> = sub.values_of("tag").map_or_else(|| vec![], | t | t.map(String::from).collect());
+    let tags: Vec<String> = sub
+        .values_of("tag")
+        .map_or_else(|| vec![], |t| t.map(String::from).collect());
 
     match import(file, bibliography, id, force_move, force_copy, tags, conf) {
         Ok(entry) => {
             println!("Successfully imported file to {}.", (&entry).file_path());
             lib.add_entry(entry);
-        },
+        }
         Err(err) => {
             eprintln!("Failed to import file: {}.", err);
         }
