@@ -65,6 +65,7 @@ pub fn import<P: AsRef<Path>>(
     key: Option<&str>,
     force_move: bool,
     force_copy: bool,
+    tags: Vec<String>,
     conf: &Configuration,
 ) -> Result<LibraryEntry, ImportError> {
     // Read file data as UTF-8 String
@@ -171,7 +172,7 @@ pub fn import<P: AsRef<Path>>(
         fs::copy(&file_path, &path)?;
     }
 
-    Ok(LibraryEntry::new(meta, path_str, digest))
+    Ok(LibraryEntry::new(meta, tags, path_str, digest))
 }
 
 mod bib {

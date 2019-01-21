@@ -1,6 +1,6 @@
 //! Defines structures used to handle and store library entries.
 
-use serde::{de, Serializer, Deserializer, Deserialize};
+use serde::{de, Deserialize, Deserializer, Serializer};
 use sha2::digest::{generic_array::GenericArray, FixedOutput};
 use sha2::Sha256;
 use std::error::Error;
@@ -84,6 +84,7 @@ pub struct LibraryEntryMeta {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LibraryEntry {
     meta: LibraryEntryMeta,
+    tags: Vec<String>,
     file_path: String,
     #[serde(serialize_with = "as_hex", deserialize_with = "from_hex")]
     digest: FileDigest,
@@ -184,9 +185,15 @@ impl LibraryEntryMeta {
 }
 
 impl LibraryEntry {
-    pub fn new(meta: LibraryEntryMeta, file_path: String, digest: FileDigest) -> LibraryEntry {
+    pub fn new(
+        meta: LibraryEntryMeta,
+        tags: Vec<String>,
+        file_path: String,
+        digest: FileDigest,
+    ) -> LibraryEntry {
         LibraryEntry {
             meta,
+            tags,
             file_path,
             digest,
         }
@@ -194,6 +201,10 @@ impl LibraryEntry {
 
     pub fn meta(&self) -> &LibraryEntryMeta {
         &self.meta
+    }
+
+    pub fn tags(&self) -> &[String] {
+        self.tags.as_slice()
     }
 
     pub fn file_path(&self) -> &str {

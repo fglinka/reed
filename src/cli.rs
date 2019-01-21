@@ -18,6 +18,7 @@ fn parse() -> App<'static, 'static> {
             (@arg move: -m --move "Move the imported file regardless of the confifuration")
             (@arg copy: -c --copy conflicts_with[move] "Copy the imported file regardless of \
                 the configuration")
+            (@arg tag: -t --tag ... +takes_value "Specify tags used to categorize papers.")
         )
     )
 }
@@ -37,8 +38,9 @@ fn sub_import(sub: &ArgMatches, lib: &mut Library, conf: &Configuration) {
     let id = sub.value_of("entry");
     let force_move = sub.is_present("move");
     let force_copy = sub.is_present("copy");
+    let tags: Vec<String> = sub.values_of("tag").map_or_else(|| vec![], | t | t.map(String::from).collect());
 
-    match import(file, bibliography, id, force_move, force_copy, conf) {
+    match import(file, bibliography, id, force_move, force_copy, tags, conf) {
         Ok(entry) => {
             println!("Successfully imported file to {}.", (&entry).file_path());
             lib.add_entry(entry);
