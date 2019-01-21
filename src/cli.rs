@@ -34,9 +34,17 @@ pub fn process_args(conf: &Configuration, lib: &mut Library) {
 fn sub_import(sub: &ArgMatches, lib: &mut Library, conf: &Configuration) {
     let file = sub.value_of("file").unwrap();
     let bibliography = sub.value_of("bibliography").unwrap();
-    let entry = sub.value_of("entry");
+    let id = sub.value_of("entry");
     let force_move = sub.is_present("move");
     let force_copy = sub.is_present("copy");
 
-    import(file, bibliography, entry, force_move, force_copy, lib, conf).unwrap();
+    match import(file, bibliography, id, force_move, force_copy, conf) {
+        Ok(entry) => {
+            println!("Successfully imported file to {}.", (&entry).file_path());
+            lib.add_entry(entry);
+        },
+        Err(err) => {
+            eprintln!("Failed to import file: {}.", err);
+        }
+    }
 }

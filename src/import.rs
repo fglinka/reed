@@ -2,7 +2,6 @@
 
 use configuration::util::assemble_name;
 use configuration::Configuration;
-use library::Library;
 use model::{LibraryEntry, LibraryEntryMeta, LibraryEntryType, Month, ParseMonthError};
 use sha2::{Digest, Sha256};
 use std::convert::From;
@@ -22,37 +21,37 @@ quick_error! {
         /// Returned when an I/O error occurs while importing a file
         Io(err: io::Error) {
             description(err.description())
-            display(self_) -> ("Import failed; I/O error: {}", self_.description())
+            display(self_) -> ("I/O error: {}", self_.description())
             from()
         }
         /// Returned when the imported file could not be parsed correctly
         Parse(descr: String) {
             description(descr)
-            display(self_) -> ("Import failed; Parsing failed: {}", self_.description())
+            display(self_) -> ("Parsing failed: {}", self_.description())
             from(e: ParseMonthError) -> (format!("{}", e))
         }
         /// Returned when an entry key not present in the bibliography was specified
         NoBibliographyFound(descr: String) {
             description(descr)
-            display(self_) -> ("Import failed; No fitting bibliography found: {}",
+            display(self_) -> ("No fitting bibliography found: {}",
                                self_.description())
         }
         /// Returned when the imported file is not valid UTF-8
         Utf8(err: string::FromUtf8Error) {
             description(err.description())
-            display(self_) -> ("Import failed; File not valid UTF-8: {}",
+            display(self_) -> ("File not valid UTF-8: {}",
                                self_.description())
             from()
         }
         /// Returned when the file type could not be identified
         UnknownFile(descr: String) {
             description(descr)
-            display(self_) -> ("Import failed; File type unkown: {}", self_.description())
+            display(self_) -> ("File type unkown: {}", self_.description())
         }
         /// Returned when a file's path is corrupt
         CorruptFilePath(descr: String) {
             description(descr)
-            display(self_) -> ("Import failed; File path corrupt: {}", self_.description())
+            display(self_) -> ("File path corrupt: {}", self_.description())
         }
     }
 }
@@ -66,7 +65,6 @@ pub fn import<P: AsRef<Path>>(
     key: Option<&str>,
     force_move: bool,
     force_copy: bool,
-    lib: &mut Library,
     conf: &Configuration,
 ) -> Result<LibraryEntry, ImportError> {
     // Read file data as UTF-8 String

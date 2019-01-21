@@ -107,6 +107,11 @@ impl Library {
         }
     }
 
+    pub fn add_entry(&mut self, entry: LibraryEntry) {
+        self.content.entries.push(entry);
+        self.changed = true;
+    }
+
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Library, LibraryPersistenceError> {
         // Open the library file and parse it
         let content = serde_json::from_reader(File::open(&path)?)?;
