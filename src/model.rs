@@ -85,7 +85,7 @@ pub struct LibraryEntryMeta {
 pub struct LibraryEntry {
     meta: LibraryEntryMeta,
     tags: Vec<String>,
-    file_path: String,
+    file_paths: Vec<String>,
     #[serde(serialize_with = "as_hex", deserialize_with = "from_hex")]
     digest: FileDigest,
 }
@@ -188,13 +188,13 @@ impl LibraryEntry {
     pub fn new(
         meta: LibraryEntryMeta,
         tags: Vec<String>,
-        file_path: String,
+        file_paths: Vec<String>,
         digest: FileDigest,
     ) -> LibraryEntry {
         LibraryEntry {
             meta,
             tags,
-            file_path,
+            file_paths,
             digest,
         }
     }
@@ -207,8 +207,8 @@ impl LibraryEntry {
         self.tags.as_slice()
     }
 
-    pub fn file_path(&self) -> &str {
-        &self.file_path
+    pub fn file_paths(&self) -> &[String] {
+        self.file_paths.as_slice()
     }
 
     pub fn digest(&self) -> &FileDigest {

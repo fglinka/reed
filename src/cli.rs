@@ -44,7 +44,19 @@ fn sub_import(sub: &ArgMatches, lib: &mut Library, conf: &Configuration) {
 
     match import(file, bibliography, id, force_move, force_copy, tags, conf) {
         Ok(entry) => {
-            println!("Successfully imported file to {}.", (&entry).file_path());
+            let paths: String = (&entry)
+                .file_paths()
+                .iter()
+                .enumerate()
+                .map(|(i, p)| {
+                    if i == 0 {
+                        p.clone()
+                    } else {
+                        format!("; {}", p)
+                    }
+                })
+                .collect();
+            println!("Successfully imported file to {}.", &paths);
             lib.add_entry(entry);
         }
         Err(err) => {
