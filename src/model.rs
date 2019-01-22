@@ -3,6 +3,7 @@
 use serde::{de, Deserialize, Deserializer, Serializer};
 use sha2::digest::{generic_array::GenericArray, FixedOutput};
 use sha2::Sha256;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
@@ -66,6 +67,9 @@ pub enum Month {
 /// database.
 pub type FileDigest = GenericArray<u8, <Sha256 as FixedOutput>::OutputSize>;
 
+/// The structure used to store tags contained in the original metadata file used during the import.
+pub type TagMap = HashMap<String, String>;
+
 /// A structure containing all metadata information of an entry stored in the document
 /// database
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -76,7 +80,7 @@ pub struct LibraryEntryMeta {
     authors: Vec<String>,
     year: u32,
     month: Option<Month>,
-    original_db: Option<String>,
+    original_tags: Option<TagMap>,
 }
 
 /// A structure containing the metadata and file information of an entry stored in the
@@ -143,7 +147,7 @@ impl LibraryEntryMeta {
         authors: Vec<String>,
         year: u32,
         month: Option<Month>,
-        original_db: Option<String>,
+        original_tags: Option<TagMap>,
     ) -> LibraryEntryMeta {
         LibraryEntryMeta {
             key,
@@ -152,7 +156,7 @@ impl LibraryEntryMeta {
             authors,
             year,
             month,
-            original_db,
+            original_tags,
         }
     }
     pub fn key(&self) -> &str {
@@ -179,8 +183,8 @@ impl LibraryEntryMeta {
         self.month
     }
 
-    pub fn original_db(&self) -> &Option<String> {
-        &self.original_db
+    pub fn original_tags(&self) -> Option<&TagMap> {
+        self.original_tags.as_ref()
     }
 }
 

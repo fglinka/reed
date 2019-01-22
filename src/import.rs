@@ -2,7 +2,7 @@
 
 use configuration::util::assemble_name;
 use configuration::Configuration;
-use model::{LibraryEntry, LibraryEntryMeta, LibraryEntryType, Month, ParseMonthError};
+use model::{LibraryEntry, LibraryEntryMeta, LibraryEntryType, Month, ParseMonthError, TagMap};
 use sha2::{Digest, Sha256};
 use std::convert::From;
 use std::error::Error;
@@ -226,7 +226,9 @@ mod bib {
         }
     }
 
-    fn import_bib(b: &Bibliography, file: &str) -> Result<LibraryEntryMeta, ImportError> {
+    fn import_bib(b: &Bibliography) -> Result<LibraryEntryMeta, ImportError> {
+        let tags: TagMap = b.tags().iter().cloned().collect();
+
         let find_tag = |tag: &str| {
             b.tags()
                 .iter()
@@ -255,7 +257,7 @@ mod bib {
             authors,
             year,
             month,
-            Some(String::from(file)),
+            Some(tags),
         ))
     }
 
@@ -267,7 +269,7 @@ mod bib {
             .iter()
             // map_or_else would make this more elegant but is not yet in stable
             // see #53268
-            .filter_map(|bib| match import_bib(bib, &file) {
+            .filter_map(|bib| match import_bib(bib) {
                 Ok(b) => Some(b),
                 Err(e) => {
                     eprintln!(
