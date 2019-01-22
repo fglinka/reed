@@ -156,23 +156,30 @@ pub fn import<P: AsRef<Path>>(
     };
 
     let name = format!("{}.{}", assemble_name(file_stem, &meta, conf), file_ext);
-    let path = conf.variables().document_location().join(name);
-    let path_str = match path.to_str() {
-        Some(s) => String::from(s),
-        None => {
-            return Err(ImportError::CorruptFilePath(format!(
-                "Path {} contains non UTF-8 characters",
-                path.to_string_lossy()
-            )));
+    let paths = (&tags)
+        .iter()
+        .map(|t| conf.variables().document_location().join(t).join(&name))
+        .map(|p| p.to_str().map(String::from))
+        .collect::<Option<Vec<String>>>()
+        .ok_or_else(|| ImportError::CorruptFilePath(String::from("Path is not valid UTF-8")))?;
+
+    for (i,p) in (&paths).iter().enumerate() {
+        let dir = (p as &AsRef<Path>).as_ref().parent().unwrap();
+        if !dir.exists() {
+            fs::create_dir_all(dir)?;
         }
-    };
-    if force_move || (!force_copy && conf.variables().move_files()) {
-        fs::rename(&file_path, &path)?;
-    } else {
-        fs::copy(&file_path, &path)?;
+        if i == 0 {
+            if force_move || (!force_copy && conf.variables().move_files()) {
+                fs::rename(&file_path, p)?;
+            } else {
+                fs::copy(&file_path, p)?;
+            }
+        } else {
+            fs::hard_link(&paths[0], p)?;
+        }
     }
 
-    Ok(LibraryEntry::new(meta, tags, vec![path_str], digest))
+    Ok(LibraryEntry::new(meta, tags, paths, digest))
 }
 
 mod bib {
