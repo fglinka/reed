@@ -88,7 +88,7 @@ impl Serialize for VersionSpec {
 
 impl<'a> Deserialize<'a> for VersionSpec {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        VersionSpec::from_str(&String::deserialize(deserializer)?).map_err(|e| de::Error::custom(e))
+        VersionSpec::from_str(&String::deserialize(deserializer)?).map_err(de::Error::custom)
     }
 }
 

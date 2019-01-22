@@ -163,7 +163,7 @@ pub fn import<P: AsRef<Path>>(
         .collect::<Option<Vec<String>>>()
         .ok_or_else(|| ImportError::CorruptFilePath(String::from("Path is not valid UTF-8")))?;
 
-    for (i,p) in (&paths).iter().enumerate() {
+    for (i, p) in (&paths).iter().enumerate() {
         let dir = (p as &AsRef<Path>).as_ref().parent().unwrap();
         if !dir.exists() {
             fs::create_dir_all(dir)?;
