@@ -2,6 +2,7 @@
 
 use configuration::Configuration;
 use model::LibraryEntry;
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
@@ -31,7 +32,7 @@ quick_error! {
 }
 
 /// An abstraction of a cargo crate version given as `major.minor.patch`.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy)]
 struct VersionSpec {
     major: u32,
     minor: u32,
@@ -76,6 +77,18 @@ impl FromStr for VersionSpec {
 impl fmt::Display for VersionSpec {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
+    }
+}
+
+impl Serialize for VersionSpec {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&format!("{}", self))
+    }
+}
+
+impl<'a> Deserialize<'a> for VersionSpec {
+    fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
+        VersionSpec::from_str(&String::deserialize(deserializer)?).map_err(|e| de::Error::custom(e))
     }
 }
 
