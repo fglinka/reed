@@ -259,7 +259,7 @@ pub mod util {
             .replace("%T", meta.title())
             .replace("%t", &meta.title().to_lowercase())
             .replace("%Y", &meta.year().to_string())
-            .replace("%y", &(meta.year() % 100).to_string())
+            .replace("%y", &format!("{:02}", meta.year() % 100))
             .replace("%M", &month)
             .replace("%m", &month.to_lowercase())
     }
