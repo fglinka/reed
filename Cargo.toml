@@ -3,7 +3,7 @@ name = "reed"
 description = "A helper for managing, searching and viewing academic papers."
 version = "0.1.0"
 authors = ["Felix Glinka <devglinka@posteo.eu>"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 # for persisting data
