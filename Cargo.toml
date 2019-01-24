@@ -1,8 +1,8 @@
 [package]
-name = "fowlder"
-description = "A helper for managing, searching and viewing academic papers"
+name = "reed"
+description = "A helper for managing, searching and viewing academic papers."
 version = "0.1.0"
-authors = ["Felix Glinka <fglinka@posteo.eu>"]
+authors = ["Felix Glinka <devglinka@posteo.eu>"]
 license = "MIT"
 
 [dependencies]
@@ -16,6 +16,8 @@ serde_json = "1"
 serde_yaml = "0.8"
 # for calculating file digests
 sha2 = "0.8"
+# enable generic_array strucures to be serialized
+generic-array = { version = "0.12", features = ["serde"] }
 # used to parse parts of loaded files
 nom = "3"
 # for importing .bib files
@@ -30,7 +32,3 @@ directories = "1"
 clap = "2"
 # used for formatting digests
 hex = "0.3"
-
-[dependencies.generic-array]
-version = "0.12"
-features = ["serde"]

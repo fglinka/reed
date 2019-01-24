@@ -4,7 +4,7 @@ use import::import;
 use library::Library;
 
 fn parse() -> App<'static, 'static> {
-    clap_app!(fowlder =>
+    clap_app!(reed =>
         (version: crate_version!())
         (author: crate_authors!())
         (about: "An application for organizing, searching and viewing academic publications")
