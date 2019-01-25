@@ -22,13 +22,13 @@ Feature Roadmap
 This is an (incomplete) list of features I want reed to support in the long term
 as well as some milestones.
 
-[x] Importing files into the library
-[x] Renaming files according to a configurable pattern
-[ ] Specifying bibliographies by pasting them into a text editor 
-[ ] Further documentation and a more verbose README
-[ ] Querying the local library
-[ ] Viewing files in the library
-[ ] Removing files from the library
+- [x] Importing files into the library
+- [x] Renaming files according to a configurable pattern
+- [ ] Specifying bibliographies by pasting them into a text editor 
+- [ ] Further documentation and a more verbose README
+- [ ] Querying the local library
+- [ ] Viewing files in the library
+- [ ] Removing files from the library
 
 License
 -------
