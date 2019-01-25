@@ -33,17 +33,17 @@ quick_error! {
 
 #[cfg(unix)]
 fn get_config_paths() -> Vec<PathBuf> {
-    let dirs = ProjectDirs::from("org", "fowlder", "fowlder")
+    let dirs = ProjectDirs::from("org", "reed", "reed")
         .expect("Failed to determine config file directories");
     vec![
         dirs.config_dir().join("config.yaml"),
-        PathBuf::from("/etc/fowlder.yaml"),
+        PathBuf::from("/etc/reed.yaml"),
     ]
 }
 
 #[cfg(not(unix))]
 fn get_config_paths() -> Vec<PathBuf> {
-    let dirs = ProjectDirs::from("fowlder", "fowlder", "org")
+    let dirs = ProjectDirs::from("reed", "reed", "org")
         .expect("Failed to determine config file directories");
     vec![dirs.config_dir().join("config.yaml")]
 }
