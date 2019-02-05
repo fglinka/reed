@@ -156,12 +156,22 @@ pub fn import<P: AsRef<Path>>(
     };
 
     let name = format!("{}.{}", assemble_name(file_stem, &meta, conf), file_ext);
-    let paths = (&tags)
-        .iter()
-        .map(|t| conf.variables().document_location().join(t).join(&name))
-        .map(|p| p.to_str().map(String::from))
-        .collect::<Option<Vec<String>>>()
-        .ok_or_else(|| ImportError::CorruptFilePath(String::from("Path is not valid UTF-8")))?;
+    let paths = if tags.is_empty() {
+        vec![conf
+            .variables()
+            .document_location()
+            .join(&name)
+            .to_str()
+            .map(String::from)
+            .ok_or_else(|| ImportError::CorruptFilePath(String::from("Path is not valid UTF-8")))?]
+    } else {
+        (&tags)
+            .iter()
+            .map(|t| conf.variables().document_location().join(t).join(&name))
+            .map(|p| p.to_str().map(String::from))
+            .collect::<Option<Vec<String>>>()
+            .ok_or_else(|| ImportError::CorruptFilePath(String::from("Path is not valid UTF-8")))?
+    };
 
     for (i, p) in (&paths).iter().enumerate() {
         let dir = (p as &AsRef<Path>).as_ref().parent().unwrap();
