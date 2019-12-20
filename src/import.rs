@@ -2,7 +2,7 @@
 
 use configuration::util::assemble_name;
 use configuration::Configuration;
-use model::{LibraryEntry, LibraryEntryMeta, LibraryEntryType, Month, ParseMonthError, TagMap};
+use model::{FileDigest, LibraryEntry, LibraryEntryMeta, LibraryEntryType, Month, ParseMonthError, TagMap};
 use sha2::{Digest, Sha256};
 use std::convert::From;
 use std::error::Error;
@@ -143,17 +143,7 @@ pub fn import<P: AsRef<Path>>(
         })?;
 
     // New lifetime to make sure the reader is closed before moving any file
-    let digest = {
-        // This can be done more elegantly (by not loading the entire file) but should suffice
-        // for now
-        let mut file_reader = BufReader::new(File::open(&file_path)?);
-        let mut file_bytes: Vec<u8> = Vec::new();
-        copy(&mut file_reader, &mut file_bytes)?;
-        let mut hasher = Sha256::default();
-        hasher.input(file_bytes.as_slice());
-
-        hasher.result()
-    };
+    let digest = calculate_digest(&file_path)?;
 
     let name = format!("{}.{}", assemble_name(file_stem, &meta, conf), file_ext);
     let paths = if tags.is_empty() {
@@ -190,6 +180,18 @@ pub fn import<P: AsRef<Path>>(
     }
 
     Ok(LibraryEntry::new(meta, tags, paths, digest))
+}
+
+fn calculate_digest<P: AsRef<Path>>(path: P) -> Result<FileDigest, ImportError> {
+    // This can be done more elegantly (by not loading the entire file) but should suffice
+    // for now
+    let mut file_reader = BufReader::new(File::open(path.as_ref())?);
+    let mut file_bytes: Vec<u8> = Vec::new();
+    copy(&mut file_reader, &mut file_bytes)?;
+    let mut hasher = Sha256::default();
+    hasher.input(file_bytes.as_slice());
+
+    Ok(hasher.result())
 }
 
 mod bib {
