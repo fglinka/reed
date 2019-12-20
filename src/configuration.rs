@@ -226,7 +226,8 @@ pub mod util {
                 meta.authors()
                     .iter()
                     .take(conf.variables().max_author_names() as usize)
-                    .map(|s| (s.clone(), String::from(get_last_name(s).unwrap_or(s))))
+                    .map(|s| sanitize_string(&s))
+                    .map(|s| (s.clone(), String::from(get_last_name(&s).unwrap_or(&s))))
                     .enumerate()
                     .map(|(i, (s1, s2))| {
                         if i == 0 {
@@ -246,6 +247,8 @@ pub mod util {
             None => String::from(""),
         };
 
+        let title = sanitize_string(meta.title());
+
         conf.variables()
             .name_pattern()
             .replace("%F", original_name)
@@ -256,11 +259,17 @@ pub mod util {
             .replace("%a", &authors.to_lowercase())
             .replace("%L", &authors_last_name)
             .replace("%l", &authors_last_name.to_lowercase())
-            .replace("%T", meta.title())
-            .replace("%t", &meta.title().to_lowercase())
+            .replace("%T", &title)
+            .replace("%t", &title.to_lowercase())
             .replace("%Y", &meta.year().to_string())
             .replace("%y", &format!("{:02}", meta.year() % 100))
             .replace("%M", &month)
             .replace("%m", &month.to_lowercase())
+    }
+
+    fn sanitize_string(s: &str) -> String {
+        s.chars()
+         .filter(| c | c.is_alphanumeric())
+         .collect()
     }
 }
