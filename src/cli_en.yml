@@ -1,0 +1,34 @@
+name: reed
+version: "0.1"
+author: Felix Glinka <devglinka@posteo.eu>
+about: An application for organizing, searching and viewing academic publications
+subcommands:
+    - import:
+        about: Import an additional document into the database
+        args:
+            - file:
+                required: true
+                help: Specify the file to import
+            - bibliography:
+                required: true
+                help: Specify a bibliography used to obtain metadata about the file
+            - entry:
+                long: entry
+                short: e
+                takes_value: true
+                help: Specify which bibliography entry to use if there are multiple
+            - move:
+                long: move
+                short: m
+                help: Move the imported file regardless of the confifuration
+            - copy:
+                long: copy
+                short: c
+                conflicts_with: [move]
+                help: Copy the imported file regardless of the configuration
+            - tag:
+                long: tag
+                short: t
+                multiple: true
+                takes_value: true
+                help: Specify tags used to categorize papers.

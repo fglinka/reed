@@ -36,6 +36,6 @@ lazy_static = "1"
 # used for determining config/data file paths
 directories = "1"
 # used for command parsing
-clap = "2"
+clap = {version = "2", features=["yaml"]}
 # used for formatting digests
 hex = "0.3"

@@ -3,28 +3,9 @@ use configuration::Configuration;
 use import::import;
 use library::Library;
 
-fn parse() -> App<'static, 'static> {
-    clap_app!(reed =>
-        (version: crate_version!())
-        (author: crate_authors!())
-        (about: "An application for organizing, searching and viewing academic publications")
-        (@subcommand import =>
-            (about: "Import an additional document into the database")
-            (@arg file: +required "Specify the file to import")
-            (@arg bibliography: +required "Specify a bibliography used to obtain metadata \
-                about the file")
-            (@arg entry: -e --entry +takes_value "Specify which bibliography entry to use \
-                if there are multiple")
-            (@arg move: -m --move "Move the imported file regardless of the confifuration")
-            (@arg copy: -c --copy conflicts_with[move] "Copy the imported file regardless of \
-                the configuration")
-            (@arg tag: -t --tag ... +takes_value "Specify tags used to categorize papers.")
-        )
-    )
-}
-
 pub fn process_args(conf: &Configuration, lib: &mut Library) {
-    let matches = parse().get_matches();
+    let app_yaml = load_yaml!("cli_en.yml");
+    let matches = App::from_yaml(app_yaml).get_matches();
 
     match matches.subcommand() {
         ("import", Some(sub)) => sub_import(sub, lib, conf),
