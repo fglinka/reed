@@ -39,3 +39,5 @@ directories = "1"
 clap = {version = "2", features=["yaml"]}
 # used for formatting digests
 hex = "0.3"
+# used for querying by regex
+regex = "1"

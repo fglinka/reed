@@ -17,6 +17,7 @@ extern crate directories;
 #[macro_use]
 extern crate clap;
 extern crate hex;
+extern crate regex;
 
 mod cli;
 mod configuration;

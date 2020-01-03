@@ -9,6 +9,7 @@ use std::fs::File;
 use std::ops::Drop;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use regex::Regex;
 
 quick_error! {
     /// Used to indicate, that the library could not be correctly loaded or stored
@@ -26,6 +27,18 @@ quick_error! {
             description(err.description())
             display(self_) -> ("(De)serialization error: {}",
                                self_.description())
+            from()
+        }
+    }
+}
+
+quick_error! {
+    #[derive(Debug)]
+    pub enum QueryError {
+        /// Returned when an invalid regex is provided
+        Regex(err: regex::Error) {
+            description(err.description())
+            display(self_) -> ("Invalid regex: {}", self_.description())
             from()
         }
     }
@@ -50,6 +63,15 @@ pub struct Library {
     content: LibraryFile,
     path: PathBuf,
     changed: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct QueryParams<'a> {
+    author: Option<&'a str>,
+    year: Option<&'a str>,
+    title: Option<&'a str>,
+    doc_type: Option<&'a str>,
+    general: Option<&'a str>
 }
 
 impl FromStr for VersionSpec {
@@ -123,6 +145,43 @@ impl Library {
     pub fn add_entry(&mut self, entry: LibraryEntry) {
         self.content.entries.push(entry);
         self.changed = true;
+    }
+
+    /// Search for library entries matching the query parameters and return a list of
+    /// their indices.
+    fn query(&self, params: &QueryParams) -> Result<Vec<usize>, QueryError> {
+        let mut results: Vec<usize> = Vec::new();
+        let author_regex = if let Some(p) = params.author { Some(Regex::new(p)?) } else { None };
+        let year_regex = if let Some(p) = params.year { Some(Regex::new(p)?) } else { None };
+        let title_regex = if let Some(p) = params.title { Some(Regex::new(p)?) } else { None };
+        let type_regex = if let Some(p) = params.title { Some(Regex::new(p)?) } else { None };
+        let general_regex = if let Some(p) = params.general { Some(Regex::new(p)?) } else { None };
+        for i in 0..self.content.entries.len() {
+            let meta = &self.content.entries[i].meta();
+            if let Some(r) = author_regex.as_ref() {
+                if !meta.authors().iter().any(| a | r.is_match(a)) { continue }
+            }
+            if let Some(r) = year_regex.as_ref() {
+                if !r.is_match(&meta.year().to_string()) { continue }
+            }
+            if let Some(r) = title_regex.as_ref() {
+                if !r.is_match(meta.title()) { continue }
+            }
+            if let Some(r) = type_regex.as_ref() {
+                if !r.is_match(&meta.entry_type().to_string()) { continue }
+            }
+
+            if let Some(r) = general_regex.as_ref() {
+                if !(meta.authors().iter().any(| a | r.is_match(a))
+                        || r.is_match(meta.title())
+                        || r.is_match(&meta.year().to_string())
+                        || r.is_match(meta.title())
+                        || r.is_match(&meta.entry_type().to_string())) { continue }
+            }
+            results.push(i);
+        }
+
+        Ok(results)
     }
 
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Library, LibraryPersistenceError> {
