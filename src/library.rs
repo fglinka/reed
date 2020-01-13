@@ -41,6 +41,16 @@ quick_error! {
             display(self_) -> ("Invalid regex: {}", self_.description())
             from()
         }
+        /// Returned when no match was found for a query
+        NoMatch {
+            description("No match found for query.")
+        }
+        /// Returned when an I/O error occured
+        Io(err: std::io::Error) {
+            description(err.description())
+            display(self_) -> ("I/O error: {}", self_.description())
+            from()
+        }
     }
 }
 
@@ -147,6 +157,28 @@ impl Library {
         self.changed = true;
     }
 
+    pub fn remove_entry<F: Fn(Vec<&LibraryEntry>) -> bool>(
+        &mut self,
+        query_params: &QueryParams,
+        remove_file: bool,
+        confirm_callback: F,
+    ) -> Result<(), QueryError> {
+        let mut query_results = self.query(query_params)?;
+        let query_entries: Vec<&LibraryEntry> = query_results.iter().map(|&i| &self.content.entries[i]).collect();
+        if confirm_callback(query_entries) {
+            query_results.sort_unstable_by(|a, b| a.cmp(b).reverse());
+            for i in query_results {
+                self.content.entries.remove(i);
+                if remove_file {
+                    for f in self.content.entries[i].file_paths() {
+                        std::fs::remove_file(f)?;
+                    }
+                }
+            }
+            self.changed = true;
+            Ok(())
+        } else { Ok(()) }
+    }
     /// Search for library entries matching the query parameters and return a list of
     /// their indices.
     fn query(&self, params: &QueryParams) -> Result<Vec<usize>, QueryError> {

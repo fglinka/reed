@@ -139,6 +139,14 @@ impl FromStr for Month {
     }
 }
 
+/// Displaying a LibraryEntryType will yield the same result as the derived Debug trait.
+/// This function is based on https://stackoverflow.com/a/32712140
+impl fmt::Display for LibraryEntryType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl LibraryEntryMeta {
     pub fn new(
         key: String,
