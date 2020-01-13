@@ -2,6 +2,7 @@
 
 use configuration::Configuration;
 use model::LibraryEntry;
+use regex::Regex;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::error::Error;
 use std::fmt;
@@ -9,7 +10,6 @@ use std::fs::File;
 use std::ops::Drop;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use regex::Regex;
 
 quick_error! {
     /// Used to indicate, that the library could not be correctly loaded or stored
@@ -81,7 +81,7 @@ pub struct QueryParams<'a> {
     year: Option<&'a str>,
     title: Option<&'a str>,
     doc_type: Option<&'a str>,
-    general: Option<&'a str>
+    general: Option<&'a str>,
 }
 
 impl FromStr for VersionSpec {
@@ -164,7 +164,10 @@ impl Library {
         confirm_callback: F,
     ) -> Result<(), QueryError> {
         let mut query_results = self.query(query_params)?;
-        let query_entries: Vec<&LibraryEntry> = query_results.iter().map(|&i| &self.content.entries[i]).collect();
+        let query_entries: Vec<&LibraryEntry> = query_results
+            .iter()
+            .map(|&i| &self.content.entries[i])
+            .collect();
         if confirm_callback(query_entries) {
             query_results.sort_unstable_by(|a, b| a.cmp(b).reverse());
             for i in query_results {
@@ -177,38 +180,71 @@ impl Library {
             }
             self.changed = true;
             Ok(())
-        } else { Ok(()) }
+        } else {
+            Ok(())
+        }
     }
     /// Search for library entries matching the query parameters and return a list of
     /// their indices.
     fn query(&self, params: &QueryParams) -> Result<Vec<usize>, QueryError> {
         let mut results: Vec<usize> = Vec::new();
-        let author_regex = if let Some(p) = params.author { Some(Regex::new(p)?) } else { None };
-        let year_regex = if let Some(p) = params.year { Some(Regex::new(p)?) } else { None };
-        let title_regex = if let Some(p) = params.title { Some(Regex::new(p)?) } else { None };
-        let type_regex = if let Some(p) = params.title { Some(Regex::new(p)?) } else { None };
-        let general_regex = if let Some(p) = params.general { Some(Regex::new(p)?) } else { None };
+        let author_regex = if let Some(p) = params.author {
+            Some(Regex::new(p)?)
+        } else {
+            None
+        };
+        let year_regex = if let Some(p) = params.year {
+            Some(Regex::new(p)?)
+        } else {
+            None
+        };
+        let title_regex = if let Some(p) = params.title {
+            Some(Regex::new(p)?)
+        } else {
+            None
+        };
+        let type_regex = if let Some(p) = params.title {
+            Some(Regex::new(p)?)
+        } else {
+            None
+        };
+        let general_regex = if let Some(p) = params.general {
+            Some(Regex::new(p)?)
+        } else {
+            None
+        };
         for i in 0..self.content.entries.len() {
             let meta = &self.content.entries[i].meta();
             if let Some(r) = author_regex.as_ref() {
-                if !meta.authors().iter().any(| a | r.is_match(a)) { continue }
+                if !meta.authors().iter().any(|a| r.is_match(a)) {
+                    continue;
+                }
             }
             if let Some(r) = year_regex.as_ref() {
-                if !r.is_match(&meta.year().to_string()) { continue }
+                if !r.is_match(&meta.year().to_string()) {
+                    continue;
+                }
             }
             if let Some(r) = title_regex.as_ref() {
-                if !r.is_match(meta.title()) { continue }
+                if !r.is_match(meta.title()) {
+                    continue;
+                }
             }
             if let Some(r) = type_regex.as_ref() {
-                if !r.is_match(&meta.entry_type().to_string()) { continue }
+                if !r.is_match(&meta.entry_type().to_string()) {
+                    continue;
+                }
             }
 
             if let Some(r) = general_regex.as_ref() {
-                if !(meta.authors().iter().any(| a | r.is_match(a))
-                        || r.is_match(meta.title())
-                        || r.is_match(&meta.year().to_string())
-                        || r.is_match(meta.title())
-                        || r.is_match(&meta.entry_type().to_string())) { continue }
+                if !(meta.authors().iter().any(|a| r.is_match(a))
+                    || r.is_match(meta.title())
+                    || r.is_match(&meta.year().to_string())
+                    || r.is_match(meta.title())
+                    || r.is_match(&meta.entry_type().to_string()))
+                {
+                    continue;
+                }
             }
             results.push(i);
         }
