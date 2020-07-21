@@ -4,7 +4,6 @@ use serde::{de, Deserialize, Deserializer, Serializer};
 use sha2::digest::{generic_array::GenericArray, FixedOutput};
 use sha2::Sha256;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 use std::vec::Vec;
@@ -14,14 +13,11 @@ quick_error! {
     pub enum ParseMonthError {
         /// Returned when the month expressed as a string is not known
         Unkown(descr: String) {
-            description(descr)
-            display(self_) -> ("Failed to parse month: {}", self_.description())
+            display(self_) -> ("Failed to parse month: {}", descr)
         }
         /// Returned when the month was specified numerically but is out of bounds
         OutOfBounds(descr: String) {
-            description(descr)
-            display(self_) -> ("Failed to parse month: {}",
-                               self_.description())
+            display(self_) -> ("Failed to parse month: {}", descr)
         }
     }
 }

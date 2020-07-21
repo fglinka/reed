@@ -4,7 +4,6 @@
 use directories::{ProjectDirs, UserDirs};
 use model::LibraryEntryMeta;
 use std::default::Default;
-use std::error::Error;
 use std::fs::{create_dir_all, File};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
@@ -14,18 +13,16 @@ quick_error! {
     pub enum ConfigurationPersistenceError {
         /// Returned when an IO error occured
         Io(err: std::io::Error) {
-            description(err.description())
             display(self_) ->
                 ("Saving or loading configuration failed; I/O error: {}",
-                    self_.description())
+                    err)
             from()
         }
         /// Returned when Serialization or Deserialization failed
         Serialization(err: serde_yaml::Error) {
-            description(err.description())
             display(self_) ->
                 ("Saving or loading configuration failed; Serialization error: {}",
-                    self_.description())
+                    err)
             from()
         }
     }
@@ -49,7 +46,7 @@ fn get_config_paths() -> Vec<PathBuf> {
 }
 
 lazy_static! {
-    static ref CONFIG_FILE_PATHS: Vec<PathBuf> = { get_config_paths() };
+    static ref CONFIG_FILE_PATHS: Vec<PathBuf> = get_config_paths();
 }
 
 /// Stores the variables of the global configuration.
@@ -179,7 +176,7 @@ impl Configuration {
     pub fn load() -> Result<Configuration, ConfigurationPersistenceError> {
         for path in CONFIG_FILE_PATHS.iter() {
             if let Ok(file) = File::open(path) {
-                let mut reader = BufReader::new(file);
+                let reader = BufReader::new(file);
                 return Ok(Configuration::new(serde_yaml::from_reader(reader)?));
             }
         }
@@ -188,11 +185,13 @@ impl Configuration {
     }
 
     pub fn save(&mut self) -> Result<(), ConfigurationPersistenceError> {
-        let path = CONFIG_FILE_PATHS
-            .iter()
-            .find(|&p| p.exists())
-            .unwrap_or(&CONFIG_FILE_PATHS[0]);
-        create_dir_all((path as &AsRef<Path>).as_ref().parent().unwrap())?;
+        let path = Path::new(
+            CONFIG_FILE_PATHS
+                .iter()
+                .find(|&p| p.exists())
+                .unwrap_or(&CONFIG_FILE_PATHS[0]),
+        );
+        create_dir_all(&path)?;
         serde_yaml::to_writer(File::create(path)?, &self.variables())?;
 
         Ok(())

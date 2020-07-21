@@ -20,38 +20,30 @@ quick_error! {
     pub enum ImportError {
         /// Returned when an I/O error occurs while importing a file
         Io(err: io::Error) {
-            description(err.description())
-            display(self_) -> ("I/O error: {}", self_.description())
+            display(self_) -> ("I/O error: {}", err)
             from()
         }
         /// Returned when the imported file could not be parsed correctly
         Parse(descr: String) {
-            description(descr)
-            display(self_) -> ("Parsing failed: {}", self_.description())
+            display(self_) -> ("Parsing failed: {}", descr)
             from(e: ParseMonthError) -> (format!("{}", e))
         }
         /// Returned when an entry key not present in the bibliography was specified
         NoBibliographyFound(descr: String) {
-            description(descr)
-            display(self_) -> ("No fitting bibliography found: {}",
-                               self_.description())
+            display(self_) -> ("No fitting bibliography found: {}", descr)
         }
         /// Returned when the imported file is not valid UTF-8
         Utf8(err: string::FromUtf8Error) {
-            description(err.description())
-            display(self_) -> ("File not valid UTF-8: {}",
-                               self_.description())
+            display(self_) -> ("File not valid UTF-8: {}", err)
             from()
         }
         /// Returned when the file type could not be identified
         UnknownFile(descr: String) {
-            description(descr)
-            display(self_) -> ("File type unkown: {}", self_.description())
+            display(self_) -> ("File type unkown: {}", descr)
         }
         /// Returned when a file's path is corrupt
         CorruptFilePath(descr: String) {
-            description(descr)
-            display(self_) -> ("File path corrupt: {}", self_.description())
+            display(self_) -> ("File path corrupt: {}", descr)
         }
     }
 }
@@ -164,7 +156,7 @@ pub fn import<P: AsRef<Path>>(
     };
 
     for (i, p) in (&paths).iter().enumerate() {
-        let dir = (p as &AsRef<Path>).as_ref().parent().unwrap();
+        let dir = Path::new(&p);
         if !dir.exists() {
             fs::create_dir_all(dir)?;
         }
@@ -202,7 +194,7 @@ mod bib {
 
     impl From<BibtexError> for ImportError {
         fn from(err: BibtexError) -> ImportError {
-            ImportError::Parse(String::from(err.description()))
+            ImportError::Parse(err.to_string())
         }
     }
 

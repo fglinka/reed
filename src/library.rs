@@ -4,7 +4,6 @@ use configuration::Configuration;
 use model::LibraryEntry;
 use regex::Regex;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::ops::Drop;
@@ -17,16 +16,13 @@ quick_error! {
     pub enum LibraryPersistenceError {
         /// Returned when an I/O error occurs while loading or storing library
         Io(err: std::io::Error) {
-            description(err.description())
-            display(self_) -> ("I/O error: {}",
-                               self_.description())
+            display(self_) -> ("I/O error: {}", err)
             from()
         }
         /// Returned when Serialization or Deserialization of the library failed
         Serialization(err: serde_json::Error) {
-            description(err.description())
             display(self_) -> ("(De)serialization error: {}",
-                               self_.description())
+                               err)
             from()
         }
     }
@@ -37,18 +33,16 @@ quick_error! {
     pub enum QueryError {
         /// Returned when an invalid regex is provided
         Regex(err: regex::Error) {
-            description(err.description())
-            display(self_) -> ("Invalid regex: {}", self_.description())
+            display(self_) -> ("Invalid regex: {}", err)
             from()
         }
         /// Returned when no match was found for a query
         NoMatch {
-            description("No match found for query.")
+            display(self_) -> ("No match found for query.")
         }
         /// Returned when an I/O error occured
         Io(err: std::io::Error) {
-            description(err.description())
-            display(self_) -> ("I/O error: {}", self_.description())
+            display(self_) -> ("I/O error: {}", err)
             from()
         }
     }
