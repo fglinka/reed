@@ -12,6 +12,11 @@ include = [
     "README.md",
 ]
 
+[features]
+default = ["bibfetch"]
+# Enables automatic fetching of the bib file given a doi
+bibfetch = ["reqwest"]
+
 [dependencies]
 # for persisting data
 serde = "1"
@@ -41,3 +46,5 @@ clap = {version = "2", features=["yaml"]}
 hex = "0.3"
 # used for querying by regex
 regex = "1"
+# Used for fetching bibs from dois
+reqwest = { version = "0.10", features = ["blocking", "json"], optional = true}
